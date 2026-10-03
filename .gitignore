@@ -1,0 +1,5 @@
+.env
+myenv/
+db/
+docs/
+__pycache__/
