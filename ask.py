@@ -33,3 +33,4 @@ while True:
     answer = reply.content[0].text
     print(answer)
     history.append({"role": "assistant", "content": answer})
+    print(history)
