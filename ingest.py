@@ -1,50 +1,30 @@
 import os
-import chromadb
-from pypdf import PdfReader
+from config import EXTS, DOCS_DIR, BATCH_SIZE
+from db import collection
+from loader import read_file, split_text
 
-db = chromadb.PersistentClient(path="db")
-collection = db.get_or_create_collection("docs")
+files = [n for n in os.listdir(DOCS_DIR) if n.lower().endswith(EXTS)]
 
-def read_file(path):
-    if path.endswith(".pdf"):
-        reader = PdfReader(path)
-        return "\n".join(page.extract_text() or "" for page in reader.pages)
-    with open(path, encoding="utf-8") as f:
-        return f.read()
+existing = collection.get(include=["metadatas"])["metadatas"]
+stale = {m["source"] for m in existing if m and m.get("source")} - set(files)
+if stale:
+    collection.delete(where={"source":{"$in":list(stale)}})
+    print(f"removed: {', '.join(sorted(stale))}")
 
-def split_text(text, size=500, overlap=100):
-    chunks = []
-    start = 0
-    while start < len(text):
-        chunks.append(text[start:start + size])
-        start += size - overlap
-    return chunks
-
-
-for name in os.listdir("docs"):
-    path = os.path.join("docs", name)
-    if not name.endswith((".pdf", ".txt", ".md")):
-        print(f"{name}: unsupported, skipped")
-        continue
+for name in files:
+    path = os.path.join(DOCS_DIR, name)
     text = read_file(path)
     chunks = [c.strip() for c in split_text(text) if c.strip()]
     collection.delete(where={"source":name})
     if not chunks:
-        print(f"{name}: no text, skipped")
+        print(f"{name}: no text found, skipped.")
         continue
     
-    # collection.upsert(
-    #     documents=chunks,
-    #     ids=[f"{name}-{i}" for i in range(len(chunks))],
-    #     metadatas=[{"source": name} for _ in chunks]
-    # )
-
-    for i in range(0, len(chunks), 1000):
-        batch = chunks[i:i + 1000]
+    for i in range(0, len(chunks), BATCH_SIZE):
+        batch = chunks[i:i+BATCH_SIZE]
         collection.upsert(
             documents=batch,
-            ids=[f"{name}-{j}" for j in range(i, i + len(batch))],
+            ids=[f"{name}-{j}" for j in range(i, i+ len(batch))],
             metadatas=[{"source": name} for _ in batch]
-    )
-    print(f"{name}: {len(chunks)} chunks")      
-   
+        )
+    print(f"{name}: {len(chunks)} chunks")

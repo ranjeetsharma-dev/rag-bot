@@ -1,0 +1,13 @@
+EXTS = (".pdf", ".md", ".txt")
+
+DOCS_DIR = "docs"
+DB_PATH = "db"
+COLLECTION_NAME = "docs"
+
+CHUNK_SIZE = 500
+CHUNK_OVERLAP = 100
+BATCH_SIZE = 1000
+
+MODEL = "claude-haiku-4-5-20251001"
+N_RESULTS = 5
+MAX_DISTANCE = 1.3
