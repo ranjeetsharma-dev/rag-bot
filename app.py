@@ -28,7 +28,14 @@ def ask(request:Request, q: Question):
     history = sessions.setdefault(q.session_id, [])
 
     search_query, source = rewrite_query(history, q.question, SOURCES)
-    where = {"source": source} if source in SOURCES else None
+    if source in SOURCES:
+        if source.startswith("mahabharata"):
+            vols = [s for s in SOURCES if s.startswith("mahabharata")]
+            where = {"source": {"$in": vols}}
+        else:
+             where = {"source": source}
+    else:
+        where = None
 
     results = collection.query(query_texts=[search_query], n_results=N_RESULTS, where=where)
     docs = results["documents"][0]
