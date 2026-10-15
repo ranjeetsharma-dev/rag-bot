@@ -6,7 +6,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY config.py db.py loader.py ingest.py ./
 COPY docs ./docs
-RUN python ingest.py
+RUN python -u ingest.py
 
 COPY . .
 
