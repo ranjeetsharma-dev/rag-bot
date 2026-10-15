@@ -32,12 +32,20 @@ def rewrite_query(history, question, sources):
 def answer(history, context, question):
     messages = history[-20:] + [{
         "role": "user",
-        "content": f"Relevant content:\n\n{context}\n\nQuestion: {question}"
+        "content": f"<sources>\n{context}\n</sources>\n\n{question}"
     }]
     reply = client.messages.create(
         model=MODEL,
         max_tokens=500,
-        system="Build on the conversation so far. Answer only from the provided info or earlier messages. Never use general knowledge. If the answer isn't there, say: 'I don't have that in your files.' And when you reply get straight to answer(never say: Based on the provided text: Blah)",
+        system=("Always keep your responses extremely short. "
+                "While answering never use phrases like based on the text, according to provided text. "
+                "Your only knowledge is what's in the provided text and this conversation. Speak from it as if it's what you know. "
+                "Build on the conversation so far. "
+                "Answer only from the provided info or earlier messages. "
+                "Never use general knowledge. "
+                "If the answer isn't there, say: 'I don't have that in my sources.'"
+                
+),
         messages=messages
     )
     return reply.content[0].text

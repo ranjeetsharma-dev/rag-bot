@@ -11,6 +11,7 @@ from models import Question
 
 limiter = Limiter(key_func=get_remote_address)
 app = FastAPI()
+SOURCES = get_sources()  
 app.mount("/static", StaticFiles(directory="static"), name="static")
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
@@ -26,9 +27,8 @@ def home():
 def ask(request:Request, q: Question):
     history = sessions.setdefault(q.session_id, [])
 
-    sources = get_sources()
-    search_query, source = rewrite_query(history, q.question, sources)
-    where = {"source": source} if source in sources else None
+    search_query, source = rewrite_query(history, q.question, SOURCES)
+    where = {"source": source} if source in SOURCES else None
 
     results = collection.query(query_texts=[search_query], n_results=N_RESULTS, where=where)
     docs = results["documents"][0]
