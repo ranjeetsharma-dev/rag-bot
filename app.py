@@ -1,4 +1,6 @@
 from fastapi import FastAPI,Request
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
@@ -9,10 +11,15 @@ from models import Question
 
 limiter = Limiter(key_func=get_remote_address)
 app = FastAPI()
+app.mount("/static", StaticFiles(directory="static"), name="static")
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 sessions = {}
 
+
+@app.get("/")
+def home():
+    return FileResponse("static/index.html")
 
 @app.post("/ask")
 @limiter.limit("10/hour;30/day")

@@ -37,7 +37,7 @@ def answer(history, context, question):
     reply = client.messages.create(
         model=MODEL,
         max_tokens=500,
-        system="Build on the conversation so far. Answer only from the provided info or earlier messages. Never use general knowledge. If the answer isn't there, say: 'I don't have that in your files.'",
+        system="Build on the conversation so far. Answer only from the provided info or earlier messages. Never use general knowledge. If the answer isn't there, say: 'I don't have that in your files.' And when you reply get straight to answer(never say: Based on the provided text: Blah)",
         messages=messages
     )
     return reply.content[0].text

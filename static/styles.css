@@ -1,0 +1,45 @@
+body {
+  font-family: system-ui, sans-serif;
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+#messages p {
+  padding: 10px 14px;
+  border-radius: 12px;
+  max-width: 80%;
+  width: fit-content;
+}
+
+.user {
+  background: #0b93f6;
+  color: white;
+  margin-left: auto;
+}
+
+.bot {
+  background: #eee;
+}
+#form {
+  display: flex;
+  gap: 8px;
+}
+
+#input {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 16px;
+}
+
+button {
+  padding: 10px 16px;
+  border: none;
+  border-radius: 8px;
+  background: #0b93f6;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+}
