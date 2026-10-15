@@ -17,14 +17,14 @@ An AI chatbot that answers questions from your own documents, using retrieval-au
 ## Architecture
 
 ```mermaid
-flowchart LR
+flowchart TD
+    D[docs/] -->|ingest.py| DB[(ChromaDB)]
     U[User] -->|question| API[FastAPI /ask]
     API --> RW[Claude: rewrite query]
-    RW --> DB[(ChromaDB)]
+    RW -->|search| DB
     DB -->|top chunks| F[Distance filter]
     F --> ANS[Claude: answer]
     ANS -->|answer| U
-    D[docs/] -->|ingest.py| DB
 ```
 
 ## Tech Stack
