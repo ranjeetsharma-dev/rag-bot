@@ -1,0 +1,3 @@
+N_RESULTS = 5
+MAX_DISTANCE = 1.3
+MODEL = "claude-haiku-4-5-20251001"

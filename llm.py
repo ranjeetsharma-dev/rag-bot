@@ -1,7 +1,7 @@
 import json
 from dotenv import load_dotenv
 from anthropic import Anthropic
-from config import MODEL
+from settings import MODEL
 
 load_dotenv()
 client = Anthropic()

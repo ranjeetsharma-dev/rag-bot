@@ -4,7 +4,7 @@ from fastapi.staticfiles import StaticFiles
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
-from config import N_RESULTS, MAX_DISTANCE
+from settings import N_RESULTS, MAX_DISTANCE
 from db import collection, get_sources
 from llm import rewrite_query, answer
 from models import Question
