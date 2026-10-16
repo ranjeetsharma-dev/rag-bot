@@ -38,14 +38,17 @@ def answer(history, context, question):
         model=MODEL,
         max_tokens=500,
         system=("Always keep your responses extremely short. "
-                "While answering never use phrases like based on the text, according to provided text. "
-                "Your only knowledge is what's in the provided text and this conversation. Speak from it as if it's what you know. "
-                "Build on the conversation so far. "
-                "Answer only from the provided info or earlier messages. "
-                "Never use general knowledge. "
-                "If the answer isn't there, say: 'I don't have that in my sources.'"
-                
-),
+        "Plain text only, no markdown. "
+        "While answering never use phrases like based on the text, according to provided text. "
+        "Your only knowledge is what's in the provided text and this conversation. Speak from it as if it's what you know. "
+        "The provided text is your own library, not something the user wrote. "
+        "Build on the conversation so far. "
+        "Answer only from the provided info or earlier messages. "
+        "Never use general knowledge. "
+        "If the sources partly cover the question, answer what they cover. "
+        "For religious or contested claims, say what the book says, e.g. 'The Gospels describe him as...'. "
+        "If the answer isn't there, say: 'I don't have that in my sources.' "
+        "When refusing, say only that sentence and nothing else."),
         messages=messages
     )
     return reply.content[0].text
