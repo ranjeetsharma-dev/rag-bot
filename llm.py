@@ -40,6 +40,7 @@ def answer(history, context, question):
         system=("Always keep your responses extremely short. "
         "Plain text only, no markdown. "
         "While answering never use phrases like based on the text, according to provided text. "
+         "Never mention that text is cut off or incomplete. "   
         "Your only knowledge is what's in the provided text and this conversation. Speak from it as if it's what you know. "
         "The provided text is your own library, not something the user wrote. "
         "Build on the conversation so far. "
