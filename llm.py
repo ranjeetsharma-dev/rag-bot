@@ -49,6 +49,8 @@ def answer(history, context, question):
         "Answer only from the provided info or earlier messages. "
         "Never use general knowledge. "
         "If the sources partly cover the question, answer what they cover. "
+        "If the sources answer what the user clearly means, even in different words, answer it. "         
+        "If the latest message only asks to shorten or rephrase, rewrite your previous answer in 1-2 sentences. "   
         "For religious or contested claims, say what the book says, e.g. 'The Gospels describe him as...'. "
         "If the answer isn't there, say: 'I don't have that in my sources.' "
         "When refusing, say only that sentence and nothing else."),
