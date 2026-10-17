@@ -27,7 +27,7 @@ def home():
 def ask(request:Request, q: Question):
     history = sessions.setdefault(q.session_id, [])
 
-    search_query, source = rewrite_query(history, q.question, SOURCES)
+    search_query, source, passage = rewrite_query(history, q.question, SOURCES)
     if source in SOURCES:
         if source.startswith("mahabharata"):
             vols = [s for s in SOURCES if s.startswith("mahabharata")]
@@ -37,10 +37,10 @@ def ask(request:Request, q: Question):
     else:
         where = None
 
-    results = collection.query(query_texts=[search_query], n_results=N_RESULTS, where=where)
+    results = collection.query(query_texts=[passage], n_results=N_RESULTS, where=where)
     docs = results["documents"][0]
     dists = results["distances"][0]
-    print(q.question, "→", search_query, source, dists)
+    print(q.question, "→", search_query, source, passage, dists)
     context = "\n\n".join(d for d, dist in zip(docs, dists) if dist < MAX_DISTANCE)
 
     reply = answer(history, context, q.question)
