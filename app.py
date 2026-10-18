@@ -5,13 +5,14 @@ from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 from settings import N_RESULTS, MAX_DISTANCE
-from db import collection, get_sources
+from db import collection
+from search import METAS, DOC_BY_ID, bm25_search, rrf
 from llm import rewrite_query, answer
 from models import Question
 
 limiter = Limiter(key_func=get_remote_address)
 app = FastAPI()
-SOURCES = get_sources()  
+SOURCES = sorted({m["source"] for m in METAS}) 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
@@ -30,18 +31,19 @@ def ask(request:Request, q: Question):
     search_query, source, passage = rewrite_query(history, q.question, SOURCES)
     if source in SOURCES:
         if source.startswith("mahabharata"):
-            vols = [s for s in SOURCES if s.startswith("mahabharata")]
-            where = {"source": {"$in": vols}}
+            allowed = [s for s in SOURCES if s.startswith("mahabharata")]
         else:
-             where = {"source": source}
+            allowed = [source]
+        where = {"source": {"$in": allowed}}
     else:
-        where = None
+        allowed, where = None, None
 
-    results = collection.query(query_texts=[passage], n_results=N_RESULTS, where=where)
-    docs = results["documents"][0]
-    dists = results["distances"][0]
-    print(q.question, "→", search_query, source, passage, dists)
-    context = "\n\n".join(d for d, dist in zip(docs, dists) if dist < MAX_DISTANCE)
+    results = collection.query(query_texts=[passage], n_results=20, where=where)
+    vec_ids = [cid for cid, dist in zip(results["ids"][0], results["distances"][0]) if dist < MAX_DISTANCE]
+    bm25_ids = bm25_search(search_query, allowed, n=20)
+    top_ids = rrf(vec_ids, bm25_ids)[:N_RESULTS]
+    print(q.question, "→", search_query, source, "\nvec:", vec_ids[:5], "\nbm25:", bm25_ids[:5], "\ntop:", top_ids)
+    context = "\n\n".join(DOC_BY_ID[cid] for cid in top_ids)
 
     reply = answer(history, context, q.question)
     history.append({"role": "user", "content": q.question})
