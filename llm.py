@@ -15,6 +15,7 @@ def rewrite_query(history, question, sources):
         system=(
             "Rewrite the latest question as a short standalone search query. Fix typos. "
             "Only use the conversation to resolve vague references. If it's a new topic, keep its topic. "
+            "Resolve indirect references (an author, a nickname, a description) to the specific book, chapter or name, e.g. 'Revelation 21 New Jerusalem measurement'. "
             f"Pick the most relevant file from: {sources}, or null if unsure. "
             "Also write 'passage': 2-3 sentences that would answer the query, in the style of the source text "
             "(e.g. King James Bible, old Mahabharata translation), with the book and verse reference if you know it. "
@@ -31,10 +32,10 @@ def rewrite_query(history, question, sources):
         return question, None, question
 
 
-def answer(history, context, question):
+def answer(history, context, question, search_query):
     messages = history[-20:] + [{
         "role": "user",
-        "content": f"<sources>\n{context}\n</sources>\n\n{question}"
+                "content": f"<sources>\n{context}\n</sources>\n\nInterpreted as: {search_query}\n\n{question}"
     }]
     reply = client.messages.create(
         model=MODEL,
@@ -49,7 +50,8 @@ def answer(history, context, question):
         "Answer only from the provided info or earlier messages. "
         "Never use general knowledge. "
         "If the sources partly cover the question, answer what they cover. "
-        "If the sources answer what the user clearly means, even in different words, answer it. "         
+        "If the sources answer what the user clearly means, even in different words, answer it. "   
+            "Use the 'Interpreted as' line to understand what the user means; their question may have typos. "      
         "If the latest message only asks to shorten or rephrase, rewrite your previous answer in 1-2 sentences. "   
         "For religious or contested claims, say what the book says, e.g. 'The Gospels describe him as...'. "
         "If the answer isn't there, say: 'I don't have that in my sources.' "

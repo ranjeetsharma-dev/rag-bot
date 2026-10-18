@@ -30,3 +30,13 @@ def rrf(*lists, k=60):
         for rank, cid in enumerate(ids, start=1):
             scores[cid] = scores.get(cid, 0) + 1 / (k + rank)
     return sorted(scores, key=scores.get, reverse=True)
+
+def with_neighbors(ids):
+    out = []
+    for cid in ids:
+        name, num = cid.rsplit("-", 1)
+        for j in (int(num) - 1, int(num), int(num) + 1):
+            nid = f"{name}-{j}"
+            if nid in DOC_BY_ID and nid not in out:
+                out.append(nid)
+    return out

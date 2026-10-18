@@ -6,7 +6,7 @@ from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 from settings import N_RESULTS, MAX_DISTANCE
 from db import collection
-from search import METAS, DOC_BY_ID, bm25_search, rrf
+from search import METAS, DOC_BY_ID, bm25_search, rrf, with_neighbors
 from llm import rewrite_query, answer
 from models import Question
 
@@ -43,9 +43,9 @@ def ask(request:Request, q: Question):
     bm25_ids = bm25_search(search_query, allowed, n=20)
     top_ids = rrf(vec_ids, bm25_ids)[:N_RESULTS]
     print(q.question, "→", search_query, source, "\nvec:", vec_ids[:5], "\nbm25:", bm25_ids[:5], "\ntop:", top_ids)
-    context = "\n\n".join(DOC_BY_ID[cid] for cid in top_ids)
+    context = "\n\n".join(DOC_BY_ID[cid] for cid in with_neighbors(top_ids))
 
-    reply = answer(history, context, q.question)
+    reply = answer(history, context, q.question, search_query)
     history.append({"role": "user", "content": q.question})
     history.append({"role": "assistant", "content": reply})
     return {"answer": reply}
