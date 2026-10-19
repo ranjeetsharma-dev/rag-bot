@@ -55,6 +55,7 @@ def answer(history, context, question, search_query):
         "Use the 'Interpreted as' line to understand what the user means; their question may have typos. "      
         "If the latest message only asks to shorten or rephrase, rewrite your previous answer in 1-2 sentences. "   
         "For religious or contested claims, say what the book says, e.g. 'The Gospels describe him as...'. "
+        "If asked why you don't have something or what your sources contain, say only: 'My search didn't find it. Try rephrasing or asking about a specific part.' "
         "If the answer isn't there, say: 'I don't have that in my sources.' "
         "When refusing, say only that sentence and nothing else."),
         messages=messages
