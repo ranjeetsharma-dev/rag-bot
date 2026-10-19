@@ -22,16 +22,21 @@ form.addEventListener("submit", async (e) => {
   thinking.textContent = "Thinking..."; // new
   messages.appendChild(thinking); // new
 
-  const res = await fetch("/ask", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ question, session_id: sessionId }),
-  });
-  const data = await res.json();
-  thinking.remove();
-  if (res.status === 429) {
-    add("Bot", "You've hit the limit (10/hour, 30/day). Try again later.");
-  } else {
-    add("Bot", data.answer || "Something went wrong.");
+  try {
+    const res = await fetch("/ask", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ question, session_id: sessionId }),
+    });
+    thinking.remove();
+    if (res.status === 429) {
+      add("Bot", "You've hit the limit (10/hour, 30/day). Try again later.");
+    } else {
+      const data = await res.json();
+      add("Bot", data.answer || "Something went wrong.");
+    }
+  } catch {
+    thinking.remove();
+    add("Bot", "Something went wrong. Please try again.");
   }
 });

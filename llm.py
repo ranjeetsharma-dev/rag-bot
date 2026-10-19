@@ -26,7 +26,8 @@ def rewrite_query(history, question, sources):
     text = r.content[0].text
     try:
         out = json.loads(text[text.find("{"):text.rfind("}") + 1])
-        return out["query"], out.get("source"), out.get("passage") or out["query"]
+        query = out.get("query") or question
+        return query, out.get("source"), out.get("passage") or query
     except Exception as e:
         print("rewrite failed:", e, text)
         return question, None, question
@@ -51,7 +52,7 @@ def answer(history, context, question, search_query):
         "Never use general knowledge. "
         "If the sources partly cover the question, answer what they cover. "
         "If the sources answer what the user clearly means, even in different words, answer it. "   
-            "Use the 'Interpreted as' line to understand what the user means; their question may have typos. "      
+        "Use the 'Interpreted as' line to understand what the user means; their question may have typos. "      
         "If the latest message only asks to shorten or rephrase, rewrite your previous answer in 1-2 sentences. "   
         "For religious or contested claims, say what the book says, e.g. 'The Gospels describe him as...'. "
         "If the answer isn't there, say: 'I don't have that in my sources.' "
