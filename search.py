@@ -1,6 +1,7 @@
 import re
 from rank_bm25 import BM25Okapi
 from db import get_all_chunks
+from flashrank import Ranker, RerankRequest
 
 
 def tokenize(text):
@@ -10,6 +11,7 @@ def tokenize(text):
 IDS, DOCS, METAS = get_all_chunks()
 bm25 = BM25Okapi([tokenize(d) for d in DOCS])
 DOC_BY_ID = dict(zip(IDS, DOCS))
+ranker = Ranker(model_name="ms-marco-MiniLM-L-12-v2")
 
 def bm25_search(query, sources=None, n=20):
     scores = bm25.get_scores(tokenize(query))
@@ -40,3 +42,8 @@ def with_neighbors(ids):
             if nid in DOC_BY_ID and nid not in out:
                 out.append(nid)
     return out
+
+def rerank(query, ids, n):
+    passages = [{"id": cid, "text": DOC_BY_ID[cid]} for cid in ids]
+    results = ranker.rerank(RerankRequest(query=query, passages=passages))
+    return [r["id"] for r in results[:n]]

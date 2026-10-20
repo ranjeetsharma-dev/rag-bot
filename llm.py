@@ -8,7 +8,7 @@ client = Anthropic()
 
 
 def rewrite_query(history, question, sources):
-    recent = "\n".join(f"{m['role']}: {m['content'][-300:]}" for m in history[-4:])
+    recent = "\n".join(f"{m['role']}: {m['content'][-300:]}" for m in history[-8:])
     r = client.messages.create(
         model=MODEL,
         max_tokens=300,
@@ -52,7 +52,10 @@ def answer(history, context, question, search_query):
         "Never use general knowledge. "
         "If the sources partly cover the question, answer what they cover. "
         "If the sources answer what the user clearly means, even in different words, answer it. "   
-        "Use the 'Interpreted as' line to understand what the user means; their question may have typos. "      
+        "Use the 'Interpreted as' line to understand what the user means; their question may have typos. "   
+        "Don't start with 'You're right' unless the user actually stated something the text confirms; if they're wrong, correct them from the text. "
+        "Don't agree with or repeat the user's opinions or insults; just state what the text describes. "
+        "For small talk (lol, wow, thanks, ok), reply with one short neutral line like 'Ask me anything about the Bible, Gita or Mahabharata.' "   
         "If the latest message only asks to shorten or rephrase, rewrite your previous answer in 1-2 sentences. "   
         "For religious or contested claims, say what the book says, e.g. 'The Gospels describe him as...'. "
         "If asked why you don't have something or what your sources contain, say only: 'My search didn't find it. Try rephrasing or asking about a specific part.' "
