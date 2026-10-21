@@ -1,7 +1,7 @@
 import re
-from rank_bm25 import BM25Okapi
-from db import get_all_chunks
+import bm25s
 from flashrank import Ranker, RerankRequest
+from db import get_all_chunks
 
 
 def tokenize(text):
@@ -9,13 +9,23 @@ def tokenize(text):
 
 
 IDS, DOCS, METAS = get_all_chunks()
-bm25 = BM25Okapi([tokenize(d) for d in DOCS])
 DOC_BY_ID = dict(zip(IDS, DOCS))
+
+tokens = bm25s.tokenize(DOCS, token_pattern=r"(?u)\b\w+\b", stopwords=None, show_progress=False)
+VOCAB = tokens.vocab
+bm25 = bm25s.BM25(method="robertson")
+bm25.index(tokens, show_progress=False)
+del tokens
+
 ranker = Ranker(model_name="ms-marco-MiniLM-L-12-v2")
 
+
 def bm25_search(query, sources=None, n=20):
-    scores = bm25.get_scores(tokenize(query))
-    ranked = sorted(range(len(IDS)), key=lambda i: scores[i], reverse=True)
+    q_ids = [VOCAB[t] for t in tokenize(query) if t in VOCAB]
+    if not q_ids:
+        return []
+    scores = bm25.get_scores(q_ids)
+    ranked = scores.argsort()[::-1]
     results = []
     for i in ranked:
         if scores[i] <= 0:
@@ -26,12 +36,14 @@ def bm25_search(query, sources=None, n=20):
                 break
     return results
 
+
 def rrf(*lists, k=60):
     scores = {}
     for ids in lists:
         for rank, cid in enumerate(ids, start=1):
             scores[cid] = scores.get(cid, 0) + 1 / (k + rank)
     return sorted(scores, key=scores.get, reverse=True)
+
 
 def with_neighbors(ids):
     out = []
@@ -43,7 +55,10 @@ def with_neighbors(ids):
                 out.append(nid)
     return out
 
+
 def rerank(query, ids, n):
+    if not ids:
+        return []
     passages = [{"id": cid, "text": DOC_BY_ID[cid]} for cid in ids]
     results = ranker.rerank(RerankRequest(query=query, passages=passages))
     return [r["id"] for r in results[:n]]
