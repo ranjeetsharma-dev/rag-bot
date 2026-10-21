@@ -4,11 +4,12 @@ from fastapi.staticfiles import StaticFiles
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
-from settings import N_RESULTS, MAX_DISTANCE
+from settings import N_RESULTS, MAX_DISTANCE, RERANK_CANDIDATES
 from db import collection
 from search import METAS, DOC_BY_ID, bm25_search, rrf, with_neighbors, rerank
 from llm import rewrite_query, answer
 from models import Question
+
 
 limiter = Limiter(key_func=get_remote_address)
 app = FastAPI()
@@ -41,7 +42,7 @@ def ask(request:Request, q: Question):
     results = collection.query(query_texts=[passage], n_results=20, where=where)
     vec_ids = [cid for cid, dist in zip(results["ids"][0], results["distances"][0]) if dist < MAX_DISTANCE]
     bm25_ids = bm25_search(search_query + " " + passage, allowed, n=20)
-    top_ids = rerank(search_query, rrf(vec_ids, bm25_ids)[:20], N_RESULTS)
+    top_ids = rerank(search_query, rrf(vec_ids, bm25_ids)[:RERANK_CANDIDATES], N_RESULTS)
     print(q.question, "→", search_query, source, "\nvec:", vec_ids[:5], "\nbm25:", bm25_ids[:5], "\ntop:", top_ids)
     context = "\n\n".join(DOC_BY_ID[cid] for cid in with_neighbors(top_ids))
     if not context:
